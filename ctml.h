@@ -103,10 +103,10 @@ This library can be configured using some macros.
 *CTML_PRETTY* will enable pretty print of the HTML. 
 *CTML_NOLIBC* will disable all libc dependent stuff (only 
 the FTEXT macro)
-*CTML_CUSTOM_FIELDS* as explained in [Custom Attributes](#Custom Attributes). 
+*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#Custom Attributes). 
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
-repeated each time you inclde it (especially CTML_CUSTOM_FIELDS). 
+repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES). 
 Creating your own header defining your ctml settings is recommended.
 
 ```c
@@ -120,14 +120,14 @@ As seen in the example, some attributes are supported by default
 like `class` or `id` but one might want to use custom/other
 attributes that are not already defined inside the library. 
 
-A special macro `CTML_CUSTOM_FIELDS` exists to let you add those
+A special macro `CTML_CUSTOM_ATTRIBUTES` exists to let you add those
 to the library. It must be used **before** including `ctml.h` and
 shall be repeated whenever you include it. 
 
 It is based on X-macros and let you add attributes this way:
 
 ```c
-#define CTML_CUSTOM_FIELDS X(checked);X(color);XL(da, data-attr);
+#define CTML_CUSTOM_ATTRIBUTES X(checked);X(color);XL(da, data-attr);
 ```
 
 This adds attributes `checked` and `color` to the engine.
@@ -159,7 +159,10 @@ NOTE: t() is an alias for the TEXT() macro.
 #ifndef CTML_H
 #define CTML_H
 
-
+// This is the X macro containing attributes.
+// Instead of adding attributes here, they can
+// also be provided using the CTML_CUSTOM_ATTRIBUTES
+// macro. 
 #define FIELDS   \
 	X(class) \
 	X(style) \
@@ -167,21 +170,43 @@ NOTE: t() is an alias for the TEXT() macro.
 	X(lang)  \
 	X(src)   \
 
+
+/*CTML_Tag structure. Looks like this:
+
+typedef struct {
+	char* tag_name;
+	int self_close;
+
+	char* class;
+	char* id;
+	char* lang;
+	... for all attributes and custom attributes.
+} CTML_Tag;
+
+Every call to h() or hh() macro ends up creating a tag. 
+
+*/
 typedef struct {
 	char* tag_name;
 	int self_close;
 	#define X(field)     char* field;
 	#define XL(field, _) char* field;
 		FIELDS
-	#ifdef CTML_CUSTOM_FIELDS
-		CTML_CUSTOM_FIELDS
+	#ifdef CTML_CUSTOM_ATTRIBUTES
+		CTML_CUSTOM_ATTRIBUTES
 	#endif
 	#undef X
 	#undef XL
 } CTML_Tag;
 
-typedef void (*ctmlSink) (char*);
 
+/*
+ * CTML_Context structure
+ * This one contains the sink (where the generated HTML is sent)
+ * and the indent state for pretty printing the output if enabled.
+*/
+
+typedef void (*ctmlSink) (char*);
 typedef struct {
 	ctmlSink sink;	
 	int indent;
@@ -195,41 +220,69 @@ typedef struct {
 void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag);
 void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 
-// TODO: Maybe find a way to clean up those CONCAT ?
+// Those CONCAT macros are used to generate unique names for created tag
+// like this: __tag__32 with 32 the __LINE__ number where h() or hh() macros
+// are used. This is the only macro sorcellery of this library.
 #define CONCAT1(a, b) a##b
 #define CONCAT(a, b) CONCAT1(a, b)
+
+// ctml_tag is THE macro of the library using the for() trick.
+// basically it does 3 things
+// 1. Create a CTML_Tag
+// 2. Call ctml_open_tag() to generate the opening of it (like <div class="toto"> )
+// 3. Start a for loop that will be executed once and then call ctml_close_tag to generate
+//    the closing tag. (like <div/>)
+// NOTE: The for loop does not have brackets, because the inside of the tag will be defined inside the
+// user code like this
+//
+// h(div) { <-- BEGINNING OF THE FOR LOOP (will call ctml_open_tag)
+//         
+//      t("tata");
+//	t("toto");
+//	
+// } <-- END OF FOR LOOP - will call ctml_close_tag for the dib
+// 
 #define ctml_tag(n, ...)                                               \
 	CTML_Tag CONCAT(_tag_, __LINE__) = {.tag_name=#n, __VA_ARGS__};			\
 	ctml_open_tag(ctx, &CONCAT(_tag_, __LINE__));                                         \
 	for (int _once = 0; _once < 1; _once=1,ctml_close_tag(ctx, &CONCAT(_tag_, __LINE__))) \
 
-#define h(n, ...) ctml_tag(n, __VA_ARGS__)
-#define hh(n, ...) ctml_tag(n, .self_close=1, __VA_ARGS__)
 
+// Those macros are used by the user.
+// h is the basic macro to create tags and hh is a macro to create a self closing tag.
+#define h(n, ...) ctml_tag(n, __VA_ARGS__)
+#define hh(n, ...) ctml_tag(n, .self_close=1, __VA_ARGS__) {}
+
+// simple macro to create the context
+// TODO: Maybe find a way not to have this "hidden" ctx the user can use ?
 #define ctml(...) CTML_Context ctml_context = (CTML_Context) {__VA_ARGS__}; \
 		  CTML_Context* ctx = &ctml_context;
 
-
+// Implementation of FTEXT that is basically
+// just a snprintf inside a temp buffer.
+// The size of the buffer can be changed using the
+// macro CTML_BUF_SIZE (default: 1024 bytes)
 #ifndef CTML_NOLIBC
 
 	#ifndef CTML_BUF_SIZE
 		#define CTML_BUF_SIZE 1024
 	#endif
 
-	char tmpbuf[CTML_BUF_SIZE];
+	char ctml_tmpbuf[CTML_BUF_SIZE];
 	#ifdef CTML_PRETTY
 		#define FTEXT(...)                                     \
-			snprintf(tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(tmpbuf);                          
+			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
+			ctx->sink(ctml_tmpbuf);                          
 
 	#else
 		#define FTEXT(...)                                     \
-			snprintf(tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(tmpbuf);                          
+			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
+			ctx->sink(ctml_tmpbuf);                          
 	#endif // CTML_PRETTY
 
 #endif // CTML_NOLIBC
 
+// Definition of TEXT macro.
 #ifdef CTML_PRETTY
 	#define TEXT(t) ctml_indent(ctx, ctx->indent+1);ctx->sink(t);ctx->sink("\n");
 #else
@@ -272,8 +325,8 @@ void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 		        ctx->sink("\"");                \
 		}                                         
 	FIELDS
-	#ifdef CTML_CUSTOM_FIELDS
-		CTML_CUSTOM_FIELDS
+	#ifdef CTML_CUSTOM_ATTRIBUTES
+		CTML_CUSTOM_ATTRIBUTES
 	#endif
 	#undef X
 	#undef XL

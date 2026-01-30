@@ -1,7 +1,7 @@
 #include <stdio.h>
 #define CTML_NOLIBC
 #define CTML_PRETTY
-#define CTML_CUSTOM_FIELDS X(toto);XL(da, data-attr);
+#define CTML_CUSTOM_ATTRIBUTES X(toto);XL(da, data-attr);
 #define CTML_IMPLEMENTATION
 #include "ctml.h"
 #include "ctml_short.h"

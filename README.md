@@ -107,10 +107,10 @@ This library can be configured using some macros.
 *CTML_PRETTY* will enable pretty print of the HTML. 
 *CTML_NOLIBC* will disable all libc dependent stuff (only 
 the FTEXT macro)
-*CTML_CUSTOM_FIELDS* as explained in [Custom Attributes](#custom-attributes).
+*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#custom-attributes).
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
-repeated each time you inclde it (especially CTML_CUSTOM_FIELDS). 
+repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES).
 Creating your own header defining your ctml settings is recommended.
 
 ```c
@@ -124,14 +124,14 @@ As seen in the example, some attributes are supported by default
 like `class` or `id` but one might want to use custom/other
 attributes that are not already defined inside the library. 
 
-A special macro `CTML_CUSTOM_FIELDS` exists to let you add those
+A special macro `CTML_CUSTOM_ATTRIBUTES` exists to let you add those
 to the library. It must be used **before** including `ctml.h` and
 shall be repeated whenever you include it. 
 
 It is based on X-macros and let you add attributes this way:
 
 ```c
-#define CTML_CUSTOM_FIELDS X(checked);X(color);XL(da, data-attr);
+#define CTML_CUSTOM_ATTRIBUTES X(checked);X(color);XL(da, data-attr);
 ```
 
 This adds attributes `checked` and `color` to the engine.
