@@ -206,6 +206,8 @@ typedef struct {
  * and the indent state for pretty printing the output if enabled.
 */
 
+// TODO: move tmpbuf here to be thread safe
+
 typedef void (*ctmlSink) (char*, void* userData);
 typedef struct {
 	ctmlSink sink;	
