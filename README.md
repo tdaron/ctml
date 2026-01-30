@@ -94,7 +94,7 @@ tags.
 You'll also need the `ctml` macro that will create a context 
 containing the sink as well as the indentation state. 
 
-Two last macros allow you to put text inside of the HTML. 
+Two last macros allows you to put text inside of the HTML. 
 The first one is `TEXT(some text here)` that is pretty self
 explanatory, and the second one is `FTEXT`, accepting formating
 like `printf`. (NOTE: FTEXT is the only libc-dependant feature). 
