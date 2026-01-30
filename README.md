@@ -10,7 +10,6 @@ anything of the control flow).
 
 ## Features
 
-- Strongly typed tag attributes 
 - Directly embeded inside C code
 - Really lightweight
 - Not any dependencies (not even libc)

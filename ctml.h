@@ -7,7 +7,6 @@ anything of the control flow).
 
 
 # Features
-- Strongly typed tag attributes 
 - Directly embeded inside C code
 - Really lightweight
 - Not any dependencies (not even libc)
@@ -167,6 +166,7 @@ NOTE: t() is an alias for the TEXT() macro.
 	X(class) \
 	X(style) \
 	X(id)    \
+	X(type)  \
 	X(lang)  \
 	X(src)   \
 
