@@ -4,9 +4,7 @@ This library is a small single header file (~125 SLoC of C) HTML templating engi
 for the C programming language.
 
 CTML is macro-based as the objective is to provide a nice to use 
-DSL inside of the C programming language. (however it does not hide
-anything of the control flow).
-
+DSL inside of the C programming language.
 
 ## Features
 
