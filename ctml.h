@@ -162,7 +162,7 @@ NOTE: t() is an alias for the TEXT() macro.
 // Instead of adding attributes here, they can
 // also be provided using the CTML_CUSTOM_ATTRIBUTES
 // macro. 
-#define FIELDS   \
+#define ATTRIBUTES   \
 	X(class) \
 	X(style) \
 	X(id)    \
@@ -191,7 +191,7 @@ typedef struct {
 	int self_close;
 	#define X(field)     char* field;
 	#define XL(field, _) char* field;
-		FIELDS
+		ATTRIBUTES
 	#ifdef CTML_CUSTOM_ATTRIBUTES
 		CTML_CUSTOM_ATTRIBUTES
 	#endif
@@ -326,7 +326,7 @@ void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 		        output(tag->field);          \
 		        output("\"");                \
 		}                                         
-	FIELDS
+	ATTRIBUTES
 	#ifdef CTML_CUSTOM_ATTRIBUTES
 		CTML_CUSTOM_ATTRIBUTES
 	#endif
