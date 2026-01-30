@@ -188,7 +188,7 @@ Every call to h() or hh() macro ends up creating a tag.
 */
 typedef struct {
 	char* tag_name;
-	int self_close;
+	char self_close;
 	#define X(field)     char* field;
 	#define XL(field, _) char* field;
 		ATTRIBUTES
