@@ -1,6 +1,6 @@
 # CTML
 
-This library is a small (~125 SLoC of C) HTML templating engine
+This library is a small single header file (~125 SLoC of C) HTML templating engine
 for the C programming language.
 
 CTML is macro-based as the objective is to provide a nice to use 
