@@ -8,7 +8,7 @@ DSL inside of the C programming language.
 
 ## Features
 
-- Directly embeded inside C code
+- Directly embedded inside C code
 - Really lightweight
 - Not any dependencies (not even libc)
 - C functions as components
