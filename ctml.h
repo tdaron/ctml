@@ -302,6 +302,16 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 	}
 #endif // CTML_PRETTY
 
+//TODO: Maybe passing the str length to the sink might be
+// 	a good idea. Most of the time this will be required
+// 	to be computed anyway. If done in a smart way it could
+// 	be fully optimized by the compiler as every string length
+// 	would be compile-time known except for the TEXT that contain
+// 	arbitrary string.
+//
+//	NOTE: idk if it is possible to implement my own strlen to not
+//	depend on libc but still get gcc to optimize it when it is
+//	compile time known.
 #define output(c) ctx->sink(c, ctx->userData)
 
 void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
