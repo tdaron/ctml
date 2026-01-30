@@ -16,7 +16,7 @@
 // Receives the HTML chunk and the client socket FD via userData
 void socket_sink(char* data, void* userData) {
     int client_fd = *(int*)userData;
-    send(client_fd, data, strlen(data), 0);
+    send(client_fd, data, strlen(data), MSG_NOSIGNAL);
 }
 
 // --- HTML Page Generator ---
