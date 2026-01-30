@@ -283,6 +283,8 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 
 #endif // CTML_NOLIBC
 
+//TODO: Add some ESCAPED_TEXT macro for safety
+
 // Definition of TEXT macro.
 #ifdef CTML_PRETTY
 	#define TEXT(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);

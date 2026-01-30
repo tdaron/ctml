@@ -1,10 +1,16 @@
-#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #define CTML_NOLIBC
 #define CTML_PRETTY
 #define CTML_CUSTOM_ATTRIBUTES X(toto);XL(da, data-attr);
 #define CTML_IMPLEMENTATION
 #include "ctml.h"
 #include "ctml_short.h"
+
+void sink(char* src, void*_) {
+	write(1, src, strlen(src));
+	
+}
 
 void cbutton(CTML_Context* ctx) {
 	button(.class="btn-primary") {
@@ -14,7 +20,7 @@ void cbutton(CTML_Context* ctx) {
 
 void ui() {
 	ctml(
-		.sink=(ctmlSink)printf
+		.sink=sink
 	) {
 		t("<!DOCTYPE html>");
 		html(.lang="en") {
