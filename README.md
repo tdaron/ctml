@@ -56,6 +56,9 @@ where ctml will send the generated HTML.
 ctml will send data in multiple times and not only once with the 
 full generated HTML. 
 
+The sink function can also take `char*, void* userData` with user data
+given to `ctml()` using `.userData = ...`
+
 ## Usage
 
 The api of the library is really simple. It only consists of 3(4) 

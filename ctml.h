@@ -206,9 +206,10 @@ typedef struct {
  * and the indent state for pretty printing the output if enabled.
 */
 
-typedef void (*ctmlSink) (char*);
+typedef void (*ctmlSink) (char*, void* userData);
 typedef struct {
 	ctmlSink sink;	
+	void* userData;
 	int indent;
 } CTML_Context;
 
@@ -272,21 +273,21 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 	#ifdef CTML_PRETTY
 		#define FTEXT(...)                                     \
 			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(ctml_tmpbuf);                          
+			ctx->sink(ctml_tmpbuf, ctx->userData);                          
 
 	#else
 		#define FTEXT(...)                                     \
 			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(ctml_tmpbuf);                          
+			ctx->sink(ctml_tmpbuf, ctx->userData);                          
 	#endif // CTML_PRETTY
 
 #endif // CTML_NOLIBC
 
 // Definition of TEXT macro.
 #ifdef CTML_PRETTY
-	#define TEXT(t) ctml_indent(ctx, ctx->indent+1);ctx->sink(t);ctx->sink("\n");
+	#define TEXT(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
 #else
-	#define TEXT(t) ctx->sink(t);
+	#define TEXT(t) ctx->sink(t, ctx->userData);
 #endif // CTML_PRETTY
 
 
@@ -296,33 +297,34 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 #ifdef CTML_PRETTY
 	void ctml_indent(CTML_Context* ctx, int count) {
 		for (int i = 0; i < count; i++) {
-			ctx->sink(" ");
+			ctx->sink(" ", ctx->userData);
 		}
 	}
 #endif // CTML_PRETTY
 
+#define output(c) ctx->sink(c, ctx->userData)
 
 void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#ifdef CTML_PRETTY
 		ctml_indent(ctx, ctx->indent);
 		ctx->indent++;
 	#endif
-	ctx->sink("<");
-	ctx->sink(tag->tag_name);
+	output("<");
+	output(tag->tag_name);
 
 	#define X(field)                                  \
 		if (tag->field != 0) {                 \
-		        ctx->sink(" " #field);          \
-		        ctx->sink("=\"");               \
-		        ctx->sink(tag->field);          \
-		        ctx->sink("\"");                \
+		        output(" " #field);          \
+		        output("=\"");               \
+		        output(tag->field);          \
+		        output("\"");                \
 		}                                         
 	#define XL(field, lname)                          \
 		if (tag->field != 0) {                 \
-		        ctx->sink(" " #lname);          \
-		        ctx->sink("=\"");               \
-		        ctx->sink(tag->field);          \
-		        ctx->sink("\"");                \
+		        output(" " #lname);          \
+		        output("=\"");               \
+		        output(tag->field);          \
+		        output("\"");                \
 		}                                         
 	FIELDS
 	#ifdef CTML_CUSTOM_ATTRIBUTES
@@ -332,12 +334,12 @@ void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#undef XL
 
 	if (!tag->self_close){
-		ctx->sink(">");
+		output(">");
 	} else {
-		ctx->sink("/>");
+		output("/>");
 	}
 	#ifdef CTML_PRETTY
-		ctx->sink("\n");
+		output("\n");
 	#endif
 }
 
@@ -350,12 +352,12 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
 		ctml_indent(ctx, ctx->indent);
 	#endif
 
-	ctx->sink("</");
-	ctx->sink(tag->tag_name);
-	ctx->sink(">");
+	output("</");
+	output(tag->tag_name);
+	output(">");
 
 	#ifdef CTML_PRETTY
-		ctx->sink("\n");
+		output("\n");
 	#endif
 }
 
