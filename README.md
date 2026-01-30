@@ -22,6 +22,29 @@ the implementation of the library.
 
 ## Quick Example
 
+### With shorthands
+```c
+#include <stdio.h>
+#define CTML_PRETTY
+#define CTML_IMPLEMENTATION
+#include "ctml.h"
+#include "ctml_short.h"
+
+int main() {
+	ctml(
+		.sink=(ctmlSink)printf
+	) {
+		html(.lang="en") {
+			div(.class="nice") {
+				t("hello, world");
+			}
+		}
+	}
+}
+ 
+```
+
+### Without shorthands
 ```c
 #include <stdio.h>
 #define CTML_PRETTY
