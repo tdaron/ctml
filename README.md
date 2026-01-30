@@ -23,6 +23,8 @@ the implementation of the library.
 ## Quick Example
 
 ### With shorthands
+(only supports a subset of html tags defined in `ctml_short.h`)
+
 ```c
 #include <stdio.h>
 #define CTML_PRETTY
