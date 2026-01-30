@@ -74,9 +74,9 @@ This code will print this html on stdout:
 </html>
 ```
 
-NOTE: The sink function is a void function taking char* as input,
-where ctml will send the generated HTML.
-ctml will send data in multiple times and not only once with the 
+NOTE: The sink function is a `void *(sink) (char*, void* userData)` where ctml
+will send the generated HTML.
+CTML will send data in multiple times and not only once with the 
 full generated HTML. 
 
 The sink function can also take `char*, void* userData` with user data
