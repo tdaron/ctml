@@ -79,7 +79,7 @@ will send the generated HTML.
 CTML will send data in multiple times and not only once with the 
 full generated HTML. 
 
-The sink function can also take `char*, void* userData` with user data
+The sink function also takes `void* userData` with user data
 given to `ctml()` using `.userData = ...`
 
 ## Usage
