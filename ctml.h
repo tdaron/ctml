@@ -263,6 +263,7 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 // just a snprintf inside a temp buffer.
 // The size of the buffer can be changed using the
 // macro CTML_BUF_SIZE (default: 1024 bytes)
+// TODO: What happens if the buffer is too small. A warning might be printed.
 #ifndef CTML_NOLIBC
 
 	#ifndef CTML_BUF_SIZE
