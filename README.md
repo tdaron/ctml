@@ -84,11 +84,12 @@ given to `ctml()` using `.userData = ...`
 
 ## Usage
 
-The api of the library is really simple. It only consists of 3(4) 
+The api of the library is really simple. It only consists of 4(5) 
 macros and 1 type. 
 
 The first macro is `h(tag, attributes*)` that is used to create
-an HTML tag. 
+an HTML tag. You also have `hh(tag, attributes*)` to create self closed
+tags.
 
 You'll also need the `ctml` macro that will create a context 
 containing the sink as well as the indentation state. 
