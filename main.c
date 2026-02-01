@@ -27,9 +27,9 @@ void ui() {
 			img(.src="https://google.com/toto.png") 
 			div(.class="toto", .da="hey", .toto="hey") {
 				h1() {
-					ctml_raw("hello, world ! ");
-					ctml_raw("My name is ");
-					ctml_raw("john");
+					ctml_raw("hello");
+					ctml_text("this is <strong>escaped</strong>");
+					ctml_raw("not <strong>escaped</strong>");
 				}
 			}
 			cbutton(ctx);

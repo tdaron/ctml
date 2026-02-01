@@ -1,13 +1,16 @@
-/* ctml - v1.0.1 - https://github.com/tdaron/ctml
+/* ctml - v1.0.2 - https://github.com/tdaron/ctml
 
-This library is a small (~125 SLoC of C) HTML templating engine.
+# CTML
+
+This library is a small single header file (~125 SLoC of C) HTML templating engine
+for the C programming language.
+
 CTML is macro-based as the objective is to provide a nice to use 
-DSL inside of the C programming language. (however it does not hide
-anything of the control flow).
+DSL inside of the C programming language.
 
+## Features
 
-# Features
-- Directly embeded inside C code
+- Directly embedded inside C code
 - Really lightweight
 - Not any dependencies (not even libc)
 - C functions as components
@@ -17,7 +20,33 @@ in your code you need to define `CTML_IMPLEMENTATION` to include
 the implementation of the library.
 
 
-# Quick Example
+## Quick Example
+
+### With shorthands
+(only supports a subset of html tags defined in `ctml_short.h`)
+
+```c
+#include <stdio.h>
+#define CTML_PRETTY
+#define CTML_IMPLEMENTATION
+#include "ctml.h"
+#include "ctml_short.h"
+
+int main() {
+    ctml(
+        .sink=(ctmlSink)printf
+    ) {
+        html(.lang="en") {
+            div(.class="nice") {
+                ctml_raw("hello, world");
+            }
+        }
+    }
+}
+ 
+```
+
+### Without shorthands
 ```c
 #include <stdio.h>
 #define CTML_PRETTY
@@ -25,15 +54,15 @@ the implementation of the library.
 #include "ctml.h"
 
 int main() {
-	ctml(
-		.sink=(ctmlSink)printf
-	) {
-		h(html, .lang="en") {
-			h(div, .class="nice") {
-				ctml_raw("hello, world");
-			}
-		}
-	}
+    ctml(
+        .sink=(ctmlSink)printf
+    ) {
+        h(html, .lang="en") {
+            h(div, .class="nice") {
+                ctml_raw("hello, world");
+            }
+        }
+    }
 }
  
 ```
@@ -47,31 +76,43 @@ This code will print this html on stdout:
 </html>
 ```
 
-NOTE: The sink function is a void function taking char* as input,
-where ctml will send the generated HTML.
-ctml will send data in multiple times and not only once with the 
+NOTE: The sink function is a `void *(sink) (char*, void* userData)` where ctml
+will send the generated HTML.
+CTML will send data in multiple times and not only once with the 
 full generated HTML. 
 
-# How to use
+The sink function also takes `void* userData` with user data
+given to `ctml()` using `.userData = ...`
 
-The api of the library is really simple. It only consists of 3(4) 
+## Usage
+
+The api of the library is really simple. It only consists of few
 macros and 1 type. 
 
-The first macro is `h(tag, attributes*)` that is used to create
-an HTML tag. 
+The first macro is `h(tag, attributes*)` that is used to created
+an HTML tag. You also have `hh(tag, attributes*)` to create self closed
+tags.
 
 You'll also need the `ctml` macro that will create a context 
-containing the sink as well as the indentation state. 
+containing the sink as well as the indentation state.
 
-Two last macros allow you to put text inside of the HTML. 
-The first one is `ctml_raw(some text here)` that is pretty self
-explanatory, and the second one is `ctml_rawf`, accepting formating
-like `printf`. (NOTE: ctml_rawf is the only libc-dependant feature). 
+Two last 4 macros allow you to put text inside of the HTML.
+You can use `ctml_text(char* text)` to put some text in the
+HTML. This **will** be escaped by default. You can also use
+`ctml_textf(char* text, ...)` that accepts formating like
+printf and co.
+
+
+The last ones are `ctml_raw(char* text)` and `ctml_rawf(char* text, ...)`
+that works the same way than `ctml_text` except they do not do any escaping.
+**IMPORTANT**: ctml_raw(f) does NOT escape anything.
+
+Formatting macros depends on libc to work. (Using snprintf under the hood).
 
 The only type you should care about is `CTML_Context` as explained
 in the [Components](#Components) section.
 
-# Components
+## Components
 
 Creating components boils down to just calling C functions. The
 only requirement is for you to pass the ctml context across components
@@ -79,16 +120,16 @@ this way:
 
 ```c
 void some_button(CTML_Context* ctx) {
-	h(button, .class="my-btn") {ctml_raw("click me");}
+    h(button, .class="my-btn") {ctml_raw("click me");}
 }
 
 void my_ui() {
-	ctml(.sink=...) {
-		h(div) {
-			// NOTE HERE THE CTX
-			some_button(ctx);
-		}
-	}
+    ctml(.sink=...) {
+        h(div) {
+            // NOTE HERE THE CTX
+            some_button(ctx);
+        }
+    }
 }
 
 ```
@@ -96,16 +137,16 @@ void my_ui() {
 The `ctx` variable is created by the `ctml` macro. You just need
 to pass it around.
 
-# Configuration
+## Configuration
 This library can be configured using some macros. 
 
 *CTML_PRETTY* will enable pretty print of the HTML. 
 *CTML_NOLIBC* will disable all libc dependent stuff (only 
 the ctml_rawf macro)
-*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#Custom Attributes). 
+*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#custom-attributes).
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
-repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES). 
+repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES).
 Creating your own header defining your ctml settings is recommended.
 
 ```c
@@ -113,7 +154,7 @@ Creating your own header defining your ctml settings is recommended.
 #include "ctml.h"
 ```
 
-# Custom Attributes
+## Custom Attributes
 
 As seen in the example, some attributes are supported by default
 like `class` or `id` but one might want to use custom/other
@@ -135,28 +176,23 @@ be replaced by `data-attr` inside of the generated HTML. (This
 `XL` macro is also useful for attributes names that are not valid
 C variable names, like `data-attr` because of the dash.
 
-# Shorthands
+## Shorthands
 
 Writing `h(tag, attributes)` can also be replaced by `tag(attributes)`
 if you also include the file `ctml_short.h`.
 
 This is a file that only declare aliases to make the code more
 readable. For instance, here is a small snippet using those:
-	```c
-	div(.id="truth") {
-		h1(.class="ctml") {
-			ctml_raw("ctml is great");
-		}
-	}
-	```
 
-## Changelog
+```c
+div(.id="truth") {
+    h1(.class="ctml") {
+        ctml_raw("ctml is great");
+    }
+}
+```
+°°
 
-v1.0.0 - first version
-v1.0.1 - replaced FTEXT and TEXT by ctml_rawf and ctml_raw 
-
-
- 
 */
 #ifndef CTML_H
 #define CTML_H
@@ -264,6 +300,16 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 #define ctml(...) CTML_Context ctml_context = (CTML_Context) {__VA_ARGS__}; \
 		  CTML_Context* ctx = &ctml_context;
 
+
+// Definition of ctml_raw macro.
+#ifdef CTML_PRETTY
+	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
+	#define ctml_text(t) ctml_indent(ctx, ctx->indent);ctml_escape_text(ctx, t);ctx->sink("\n", ctx->userData);
+#else
+	#define ctml_raw(t) ctx->sink(t, ctx->userData);
+	#define ctml_text(t) ctml_escape_text(ctx, t);
+#endif // CTML_PRETTY
+
 // Implementation of ctml_rawf that is basically
 // just a snprintf inside a temp buffer.
 // The size of the buffer can be changed using the
@@ -276,27 +322,18 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 	#endif
 
 	char ctml_tmpbuf[CTML_BUF_SIZE];
-	#ifdef CTML_PRETTY
-		#define ctml_rawf(...)                                     \
-			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(ctml_tmpbuf, ctx->userData);                          
 
-	#else
-		#define ctml_rawf(...)                                     \
-			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-			ctx->sink(ctml_tmpbuf, ctx->userData);                          
-	#endif // CTML_PRETTY
+	#define ctml_rawf(...)                                     \
+		snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
+		ctml_raw(ctml_tmpbuf);
+	#define ctml_rawf(...)                                     \
+		snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
+		ctml_raw(ctml_tmpbuf);
+
 
 #endif // CTML_NOLIBC
 
-//TODO: Add some ESCAPED_ctml_raw macro for safety
 
-// Definition of ctml_raw macro.
-#ifdef CTML_PRETTY
-	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
-#else
-	#define ctml_raw(t) ctx->sink(t, ctx->userData);
-#endif // CTML_PRETTY
 
 
 
@@ -377,6 +414,44 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#ifdef CTML_PRETTY
 		output("\n");
 	#endif
+}
+
+void ctml_escape_text(CTML_Context* ctx, char* text) {
+	for (int i = 0; text[i] != '\0'; i++) {
+		if (text[i] == '<') {
+			output("&lt;");
+		}
+
+		else if (text[i] == '>') {
+			output("&gt;");
+		}
+
+		else if (text[i] == '&') {
+
+			output("&amp;");
+		}
+
+		else if (text[i] == '\'') {
+
+			output("&quot;");
+		}
+
+		else if (text[i] == '"') {
+			output("&#39;");
+		}
+		else {
+			char c[2] = {0};
+			c[0] = text[i];
+			c[1] = '\0';
+			// TODO: make output take length
+			// otherwise we need to do this awful thing
+
+			// TODO: Make output() buffered to ensure
+			// we are not really calling sink for every byte of
+			// this escaped text
+			output(c);
+		}
+	}
 }
 
 #endif // CTML_IMPLEMENTATION

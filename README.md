@@ -6,6 +6,11 @@ for the C programming language.
 CTML is macro-based as the objective is to provide a nice to use 
 DSL inside of the C programming language.
 
+**Status**: This library is still in development. It works but is not as
+optimized as it could be. This warning will be removed when the library
+is considered usable.
+
+
 ## Features
 
 - Directly embedded inside C code
@@ -31,15 +36,15 @@ the implementation of the library.
 #include "ctml_short.h"
 
 int main() {
-	ctml(
-		.sink=(ctmlSink)printf
-	) {
-		html(.lang="en") {
-			div(.class="nice") {
-				ctml_raw("hello, world");
-			}
-		}
-	}
+    ctml(
+        .sink=(ctmlSink)printf
+    ) {
+        html(.lang="en") {
+            div(.class="nice") {
+                ctml_raw("hello, world");
+            }
+        }
+    }
 }
  
 ```
@@ -52,15 +57,15 @@ int main() {
 #include "ctml.h"
 
 int main() {
-	ctml(
-		.sink=(ctmlSink)printf
-	) {
-		h(html, .lang="en") {
-			h(div, .class="nice") {
-				ctml_raw("hello, world");
-			}
-		}
-	}
+    ctml(
+        .sink=(ctmlSink)printf
+    ) {
+        h(html, .lang="en") {
+            h(div, .class="nice") {
+                ctml_raw("hello, world");
+            }
+        }
+    }
 }
  
 ```
@@ -84,22 +89,28 @@ given to `ctml()` using `.userData = ...`
 
 ## Usage
 
-The api of the library is really simple. It only consists of 4(5) 
+The api of the library is really simple. It only consists of few
 macros and 1 type. 
 
-The first macro is `h(tag, attributes*)` that is used to create
+The first macro is `h(tag, attributes*)` that is used to created
 an HTML tag. You also have `hh(tag, attributes*)` to create self closed
 tags.
 
 You'll also need the `ctml` macro that will create a context 
-containing the sink as well as the indentation state. 
+containing the sink as well as the indentation state.
 
-Two last macros allow you to put text inside of the HTML. 
-The first one is `ctml_raw(some text here)` that is pretty self
-explanatory, and the second one is `ctml_rawf`, accepting formating
-like `printf`. (NOTE: ctml_rawf is the only libc-dependant feature).
+Two last 4 macros allow you to put text inside of the HTML.
+You can use `ctml_text(char* text)` to put some text in the
+HTML. This **will** be escaped by default. You can also use
+`ctml_textf(char* text, ...)` that accepts formating like
+printf and co.
 
-**IMPORTANT**: ctml_raw does NOT escape anything.
+
+The last ones are `ctml_raw(char* text)` and `ctml_rawf(char* text, ...)`
+that works the same way than `ctml_text` except they do not do any escaping.
+**IMPORTANT**: ctml_raw(f) does NOT escape anything.
+
+Formatting macros depends on libc to work. (Using snprintf under the hood).
 
 The only type you should care about is `CTML_Context` as explained
 in the [Components](#Components) section.
@@ -112,16 +123,16 @@ this way:
 
 ```c
 void some_button(CTML_Context* ctx) {
-	h(button, .class="my-btn") {ctml_raw("click me");}
+    h(button, .class="my-btn") {ctml_raw("click me");}
 }
 
 void my_ui() {
-	ctml(.sink=...) {
-		h(div) {
-			// NOTE HERE THE CTX
-			some_button(ctx);
-		}
-	}
+    ctml(.sink=...) {
+        h(div) {
+            // NOTE HERE THE CTX
+            some_button(ctx);
+        }
+    }
 }
 
 ```
@@ -178,9 +189,10 @@ readable. For instance, here is a small snippet using those:
 
 ```c
 div(.id="truth") {
-	h1(.class="ctml") {
-		ctml_raw("ctml is great");
-	}
+    h1(.class="ctml") {
+        ctml_raw("ctml is great");
+    }
 }
 ```
+°°
 

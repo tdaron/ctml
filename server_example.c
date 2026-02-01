@@ -40,8 +40,9 @@ void render_homepage(int client_fd, int visitor_count) {
                     
                     hr();
                     
-                    p() {
-                        ctml_rawf("You are visitor number: <strong>%d</strong>", visitor_count);
+                    div() {
+                        p() {ctml_rawf("You are visitor number: <strong>%d</strong>", visitor_count);}
+                        p() {ctml_text("You are visitor number: <strong>X</strong>");}
                     }
                     
                     br();
