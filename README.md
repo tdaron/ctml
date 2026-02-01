@@ -96,8 +96,7 @@ The first macro is `h(tag, attributes*)` that is used to created
 an HTML tag. You also have `hh(tag, attributes*)` to create self closed
 tags.
 
-You'll also need the `ctml` macro that will create a context 
-containing the sink as well as the indentation state.
+You'll also need the `ctml` macro that will create a context containing some state.
 
 Two last 4 macros allow you to put text inside of the HTML.
 You can use `ctml_text(char* text)` to put some text in the
