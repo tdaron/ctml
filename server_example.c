@@ -24,30 +24,30 @@ void render_homepage(int client_fd, int visitor_count) {
     // Pass the client_fd address as userData to the context
     ctml(.sink = socket_sink, .userData = &client_fd) {
         
-        t("<!DOCTYPE html>");
+       ctml_raw("<!DOCTYPE html>");
         html(.lang="en") {
             head() {
-                title() { t("CTML Server"); }
+                title() {ctml_raw("CTML Server"); }
                 h(style) {
-                    t("body { font-family: sans-serif; text-align: center; padding: 50px; }");
-                    t(".box { border: 2px solid #333; padding: 20px; display: inline-block; }");
+                   ctml_raw("body { font-family: sans-serif; text-align: center; padding: 50px; }");
+                   ctml_raw(".box { border: 2px solid #333; padding: 20px; display: inline-block; }");
                 }
             }
             body() {
                 div(.class="box") {
-                    h1() { t("Hello from C!"); }
-                    p() { t("This HTML was generated directly by the CTML library."); }
+                    h1() {ctml_raw("Hello from C!"); }
+                    p() {ctml_raw("This HTML was generated directly by the CTML library."); }
                     
                     hr();
                     
                     p() {
-                        FTEXT("You are visitor number: <strong>%d</strong>", visitor_count);
+                        ctml_rawf("You are visitor number: <strong>%d</strong>", visitor_count);
                     }
                     
                     br();
                     
                     button(.onclick="location.reload()") {
-                        t("Refresh Page");
+	                ctml_raw("Refresh Page");
                     }
                 }
             }

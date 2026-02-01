@@ -1,4 +1,4 @@
-/* ctml - v1.0.0 - https://github.com/tdaron/ctml
+/* ctml - v1.0.1 - https://github.com/tdaron/ctml
 
 This library is a small (~125 SLoC of C) HTML templating engine.
 CTML is macro-based as the objective is to provide a nice to use 
@@ -30,7 +30,7 @@ int main() {
 	) {
 		h(html, .lang="en") {
 			h(div, .class="nice") {
-				TEXT("hello, world");
+				ctml_raw("hello, world");
 			}
 		}
 	}
@@ -64,9 +64,9 @@ You'll also need the `ctml` macro that will create a context
 containing the sink as well as the indentation state. 
 
 Two last macros allow you to put text inside of the HTML. 
-The first one is `TEXT(some text here)` that is pretty self
-explanatory, and the second one is `FTEXT`, accepting formating
-like `printf`. (NOTE: FTEXT is the only libc-dependant feature). 
+The first one is `ctml_raw(some text here)` that is pretty self
+explanatory, and the second one is `ctml_rawf`, accepting formating
+like `printf`. (NOTE: ctml_rawf is the only libc-dependant feature). 
 
 The only type you should care about is `CTML_Context` as explained
 in the [Components](#Components) section.
@@ -79,7 +79,7 @@ this way:
 
 ```c
 void some_button(CTML_Context* ctx) {
-	h(button, .class="my-btn") {TEXT("click me");}
+	h(button, .class="my-btn") {ctml_raw("click me");}
 }
 
 void my_ui() {
@@ -101,7 +101,7 @@ This library can be configured using some macros.
 
 *CTML_PRETTY* will enable pretty print of the HTML. 
 *CTML_NOLIBC* will disable all libc dependent stuff (only 
-the FTEXT macro)
+the ctml_rawf macro)
 *CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#Custom Attributes). 
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
@@ -145,12 +145,15 @@ readable. For instance, here is a small snippet using those:
 	```c
 	div(.id="truth") {
 		h1(.class="ctml") {
-			t("ctml is great");
+			ctml_raw("ctml is great");
 		}
 	}
 	```
-NOTE: t() is an alias for the TEXT() macro.
 
+## Changelog
+
+v1.0.0 - first version
+v1.0.1 - replaced FTEXT and TEXT by ctml_rawf and ctml_raw 
 
 
  
@@ -240,8 +243,8 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 //
 // h(div) { <-- BEGINNING OF THE FOR LOOP (will call ctml_open_tag)
 //         
-//      t("tata");
-//	t("toto");
+//      ctml_raw("tata");
+//	ctml_raw("toto");
 //	
 // } <-- END OF FOR LOOP - will call ctml_close_tag for the dib
 // 
@@ -261,7 +264,7 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 #define ctml(...) CTML_Context ctml_context = (CTML_Context) {__VA_ARGS__}; \
 		  CTML_Context* ctx = &ctml_context;
 
-// Implementation of FTEXT that is basically
+// Implementation of ctml_rawf that is basically
 // just a snprintf inside a temp buffer.
 // The size of the buffer can be changed using the
 // macro CTML_BUF_SIZE (default: 1024 bytes)
@@ -274,25 +277,25 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 
 	char ctml_tmpbuf[CTML_BUF_SIZE];
 	#ifdef CTML_PRETTY
-		#define FTEXT(...)                                     \
+		#define ctml_rawf(...)                                     \
 			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
 			ctx->sink(ctml_tmpbuf, ctx->userData);                          
 
 	#else
-		#define FTEXT(...)                                     \
+		#define ctml_rawf(...)                                     \
 			snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
 			ctx->sink(ctml_tmpbuf, ctx->userData);                          
 	#endif // CTML_PRETTY
 
 #endif // CTML_NOLIBC
 
-//TODO: Add some ESCAPED_TEXT macro for safety
+//TODO: Add some ESCAPED_ctml_raw macro for safety
 
-// Definition of TEXT macro.
+// Definition of ctml_raw macro.
 #ifdef CTML_PRETTY
-	#define TEXT(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
+	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
 #else
-	#define TEXT(t) ctx->sink(t, ctx->userData);
+	#define ctml_raw(t) ctx->sink(t, ctx->userData);
 #endif // CTML_PRETTY
 
 
@@ -311,7 +314,7 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 // 	a good idea. Most of the time this will be required
 // 	to be computed anyway. If done in a smart way it could
 // 	be fully optimized by the compiler as every string length
-// 	would be compile-time known except for the TEXT that contain
+// 	would be compile-time known except for the ctml_raw that contain
 // 	arbitrary string.
 //
 //	NOTE: idk if it is possible to implement my own strlen to not

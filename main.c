@@ -14,7 +14,7 @@ void sink(char* src, void*_) {
 
 void cbutton(CTML_Context* ctx) {
 	button(.class="btn-primary") {
-		t("click");
+		ctml_raw("click");
 	}
 }
 
@@ -22,14 +22,14 @@ void ui() {
 	ctml(
 		.sink=sink
 	) {
-		t("<!DOCTYPE html>");
+		ctml_raw("<!DOCTYPE html>");
 		html(.lang="en") {
 			img(.src="https://google.com/toto.png") 
 			div(.class="toto", .da="hey", .toto="hey") {
 				h1() {
-					t("hello, world ! ");
-					t("My name is ");
-					t("john");
+					ctml_raw("hello, world ! ");
+					ctml_raw("My name is ");
+					ctml_raw("john");
 				}
 			}
 			cbutton(ctx);

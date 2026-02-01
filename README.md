@@ -36,7 +36,7 @@ int main() {
 	) {
 		html(.lang="en") {
 			div(.class="nice") {
-				t("hello, world");
+				ctml_raw("hello, world");
 			}
 		}
 	}
@@ -57,7 +57,7 @@ int main() {
 	) {
 		h(html, .lang="en") {
 			h(div, .class="nice") {
-				TEXT("hello, world");
+				ctml_raw("hello, world");
 			}
 		}
 	}
@@ -94,10 +94,10 @@ tags.
 You'll also need the `ctml` macro that will create a context 
 containing the sink as well as the indentation state. 
 
-Two last macros allows you to put text inside of the HTML. 
-The first one is `TEXT(some text here)` that is pretty self
-explanatory, and the second one is `FTEXT`, accepting formating
-like `printf`. (NOTE: FTEXT is the only libc-dependant feature). 
+Two last macros allow you to put text inside of the HTML. 
+The first one is `ctml_raw(some text here)` that is pretty self
+explanatory, and the second one is `ctml_rawf`, accepting formating
+like `printf`. (NOTE: ctml_rawf is the only libc-dependant feature).
 
 The only type you should care about is `CTML_Context` as explained
 in the [Components](#Components) section.
@@ -110,7 +110,7 @@ this way:
 
 ```c
 void some_button(CTML_Context* ctx) {
-	h(button, .class="my-btn") {TEXT("click me");}
+	h(button, .class="my-btn") {ctml_raw("click me");}
 }
 
 void my_ui() {
@@ -132,7 +132,7 @@ This library can be configured using some macros.
 
 *CTML_PRETTY* will enable pretty print of the HTML. 
 *CTML_NOLIBC* will disable all libc dependent stuff (only 
-the FTEXT macro)
+the ctml_rawf macro)
 *CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#custom-attributes).
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
@@ -177,9 +177,8 @@ readable. For instance, here is a small snippet using those:
 ```c
 div(.id="truth") {
 	h1(.class="ctml") {
-		t("ctml is great");
+		ctml_raw("ctml is great");
 	}
 }
 ```
 
-NOTE: t() is an alias for the TEXT() macro.

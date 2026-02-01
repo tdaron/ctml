@@ -226,10 +226,4 @@
     #define hr(...)      hh(hr, __VA_ARGS__)
 #endif
 
-// --- Utilities ---
-
-#ifndef CTML_NO_T
-    #define t(c) TEXT(c)
-#endif
-
 #endif // CTML_SHORT_H
