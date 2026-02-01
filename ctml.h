@@ -8,6 +8,11 @@ for the C programming language.
 CTML is macro-based as the objective is to provide a nice to use 
 DSL inside of the C programming language.
 
+**Status**: This library is still in development. It works but is not as
+optimized as it could be. This warning will be removed when the library
+is considered usable.
+
+
 ## Features
 
 - Directly embedded inside C code
@@ -38,7 +43,7 @@ int main() {
     ) {
         html(.lang="en") {
             div(.class="nice") {
-                ctml_raw("hello, world");
+                ctml_text("hello, world");
             }
         }
     }
@@ -59,7 +64,7 @@ int main() {
     ) {
         h(html, .lang="en") {
             h(div, .class="nice") {
-                ctml_raw("hello, world");
+                ctml_text("hello, world");
             }
         }
     }
@@ -187,11 +192,12 @@ readable. For instance, here is a small snippet using those:
 ```c
 div(.id="truth") {
     h1(.class="ctml") {
-        ctml_raw("ctml is great");
+        ctml_text("ctml is great");
     }
 }
 ```
 °°
+
 
 */
 #ifndef CTML_H

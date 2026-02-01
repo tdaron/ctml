@@ -41,7 +41,7 @@ int main() {
     ) {
         html(.lang="en") {
             div(.class="nice") {
-                ctml_raw("hello, world");
+                ctml_text("hello, world");
             }
         }
     }
@@ -62,7 +62,7 @@ int main() {
     ) {
         h(html, .lang="en") {
             h(div, .class="nice") {
-                ctml_raw("hello, world");
+                ctml_text("hello, world");
             }
         }
     }
@@ -190,7 +190,7 @@ readable. For instance, here is a small snippet using those:
 ```c
 div(.id="truth") {
     h1(.class="ctml") {
-        ctml_raw("ctml is great");
+        ctml_text("ctml is great");
     }
 }
 ```
