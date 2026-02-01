@@ -99,6 +99,8 @@ The first one is `ctml_raw(some text here)` that is pretty self
 explanatory, and the second one is `ctml_rawf`, accepting formating
 like `printf`. (NOTE: ctml_rawf is the only libc-dependant feature).
 
+**IMPORTANT**: ctml_raw does NOT escape anything.
+
 The only type you should care about is `CTML_Context` as explained
 in the [Components](#Components) section.
 
