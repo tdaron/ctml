@@ -83,7 +83,7 @@ This code will print this html on stdout:
 
 NOTE: The sink function is a `void *(sink) (char*, void* userData)` where ctml
 will send the generated HTML.
-CTML will send data in multiple times and not only once with the 
+CTML will send data in multiple batches and not only once with the
 full generated HTML. 
 
 The sink function also takes `void* userData` with user data
@@ -145,10 +145,15 @@ to pass it around.
 ## Configuration
 This library can be configured using some macros. 
 
-*CTML_PRETTY* will enable pretty print of the HTML. 
-*CTML_NOLIBC* will disable all libc dependent stuff (only 
+`CTML_PRETTY` will enable pretty print of the HTML.
+`CTML_NOLIBC` will disable all libc dependent stuff (only
 the ctml_rawf macro)
-*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#custom-attributes).
+`CTML_CUSTOM_ATTRIBUTES` as explained in [Custom Attributes](#custom-attributes).
+
+To avoid calling the sink loads of times, ctml will bufferize the output.
+The size of this buffer can be parametrized using `CTML_SINK_BUFSIZE`.
+The default value is 1024 bytes. Setting it to `1` or `0` will disable
+buffering.
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
 repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES).
@@ -197,8 +202,6 @@ div(.id="truth") {
 }
 ```
 °°
-
-
 */
 #ifndef CTML_H
 #define CTML_H
@@ -253,11 +256,17 @@ typedef struct {
 
 // TODO: move tmpbuf here to be thread safe
 
+#ifndef CTML_SINK_BUFSIZE
+	#define CTML_SINK_BUFSIZE 1024
+#endif
+
 typedef void (*ctmlSink) (char*, void* userData);
 typedef struct {
 	ctmlSink sink;	
 	void* userData;
 	int indent;
+	char outputBuf[CTML_SINK_BUFSIZE];
+	int bufferedDataLength;
 } CTML_Context;
 
 
@@ -304,15 +313,16 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 // simple macro to create the context
 // TODO: Maybe find a way not to have this "hidden" ctx the user can use ?
 #define ctml(...) CTML_Context ctml_context = (CTML_Context) {__VA_ARGS__}; \
-		  CTML_Context* ctx = &ctml_context;
+		  CTML_Context* ctx = &ctml_context; \
+		  for (int _once = 0; _once < 1; _once=1,ctml_flush_buffer(ctx)) \
 
 
 // Definition of ctml_raw macro.
 #ifdef CTML_PRETTY
-	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctx->sink(t, ctx->userData);ctx->sink("\n", ctx->userData);
-	#define ctml_text(t) ctml_indent(ctx, ctx->indent);ctml_escape_text(ctx, t);ctx->sink("\n", ctx->userData);
+	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctml_output(t);ctml_output("\n");
+	#define ctml_text(t) ctml_indent(ctx, ctx->indent);ctml_escape_text(ctx, t);ctml_output("\n");
 #else
-	#define ctml_raw(t) ctx->sink(t, ctx->userData);
+	#define ctml_raw(t) ctml_output(t);
 	#define ctml_text(t) ctml_escape_text(ctx, t);
 #endif // CTML_PRETTY
 
@@ -345,47 +355,83 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 
 #ifdef CTML_IMPLEMENTATION
 
+#define ctml_output(c) ctml_buffered_ctml_output(ctx, c, -1);
+
+void ctml_buffered_ctml_output(CTML_Context* ctx, char* data, int length) {
+	#if CTML_SINK_BUFSIZE == 0 || CTML_SINK_BUFSIZE == 1
+		ctx->sink(data, ctx->userData);
+	#else
+		int available = CTML_SINK_BUFSIZE - ctx->bufferedDataLength - 1;
+		int i;
+		for (i = 0; i < available; i++) {
+			if (data[i] == '\0' || (i == length && length != -1) ) {
+				break;
+			}
+			(ctx->outputBuf+ctx->bufferedDataLength)[i] = data[i];
+		}
+		ctx->bufferedDataLength += i;
+		// Check if the buffer is full
+		if (i == available) {
+			ctx->outputBuf[CTML_SINK_BUFSIZE-1] = '\0';
+			ctx->sink(ctx->outputBuf, ctx->userData);
+
+			ctx->bufferedDataLength = 0;
+		}
+		// if there is data left
+		if (data[i] != '\0') {
+			// send the rest of it
+			int new_length = length;
+			if (length != -1) {
+				new_length -= i;
+			}
+			if (new_length != 0) {
+				ctml_buffered_ctml_output(ctx, data+i, new_length);
+			}
+		}
+	#endif
+}
+
+void ctml_flush_buffer(CTML_Context* ctx) {
+	if (ctx->bufferedDataLength != 0) {
+		ctx->outputBuf[ctx->bufferedDataLength] = '\0';
+		ctx->sink(ctx->outputBuf, ctx->userData);
+		ctx->bufferedDataLength = 0;
+	}
+}
+
+
+
 #ifdef CTML_PRETTY
 	void ctml_indent(CTML_Context* ctx, int count) {
 		for (int i = 0; i < count; i++) {
-			ctx->sink(" ", ctx->userData);
+			ctml_output(" ");
 		}
 	}
 #endif // CTML_PRETTY
 
-//TODO: Maybe passing the str length to the sink might be
-// 	a good idea. Most of the time this will be required
-// 	to be computed anyway. If done in a smart way it could
-// 	be fully optimized by the compiler as every string length
-// 	would be compile-time known except for the ctml_raw that contain
-// 	arbitrary string.
-//
-//	NOTE: idk if it is possible to implement my own strlen to not
-//	depend on libc but still get gcc to optimize it when it is
-//	compile time known.
-#define output(c) ctx->sink(c, ctx->userData)
-
 void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#ifdef CTML_PRETTY
 		ctml_indent(ctx, ctx->indent);
-		ctx->indent++;
+		if (!tag->self_close) {
+			ctx->indent++;
+		}
 	#endif
-	output("<");
-	output(tag->tag_name);
+	ctml_output("<");
+	ctml_output(tag->tag_name);
 
 	#define X(field)                                  \
 		if (tag->field != 0) {                 \
-		        output(" " #field);          \
-		        output("=\"");               \
-		        output(tag->field);          \
-		        output("\"");                \
+		        ctml_output(" " #field);          \
+		        ctml_output("=\"");               \
+		        ctml_output(tag->field);          \
+		        ctml_output("\"");                \
 		}                                         
 	#define XL(field, lname)                          \
 		if (tag->field != 0) {                 \
-		        output(" " #lname);          \
-		        output("=\"");               \
-		        output(tag->field);          \
-		        output("\"");                \
+		        ctml_output(" " #lname);          \
+		        ctml_output("=\"");               \
+		        ctml_output(tag->field);          \
+		        ctml_output("\"");                \
 		}                                         
 	ATTRIBUTES
 	#ifdef CTML_CUSTOM_ATTRIBUTES
@@ -395,12 +441,12 @@ void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#undef XL
 
 	if (!tag->self_close){
-		output(">");
+		ctml_output(">");
 	} else {
-		output("/>");
+		ctml_output("/>");
 	}
 	#ifdef CTML_PRETTY
-		output("\n");
+		ctml_output("\n");
 	#endif
 }
 
@@ -413,49 +459,34 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
 		ctml_indent(ctx, ctx->indent);
 	#endif
 
-	output("</");
-	output(tag->tag_name);
-	output(">");
+	ctml_output("</");
+	ctml_output(tag->tag_name);
+	ctml_output(">");
 
 	#ifdef CTML_PRETTY
-		output("\n");
+		ctml_output("\n");
 	#endif
 }
 
 void ctml_escape_text(CTML_Context* ctx, char* text) {
 	for (int i = 0; text[i] != '\0'; i++) {
 		if (text[i] == '<') {
-			output("&lt;");
+			ctml_output("&lt;");
 		}
-
 		else if (text[i] == '>') {
-			output("&gt;");
+			ctml_output("&gt;");
 		}
-
 		else if (text[i] == '&') {
-
-			output("&amp;");
+			ctml_output("&amp;");
 		}
-
 		else if (text[i] == '\'') {
-
-			output("&quot;");
+			ctml_output("&quot;");
 		}
-
 		else if (text[i] == '"') {
-			output("&#39;");
+			ctml_output("&#39;");
 		}
 		else {
-			char c[2] = {0};
-			c[0] = text[i];
-			c[1] = '\0';
-			// TODO: make output take length
-			// otherwise we need to do this awful thing
-
-			// TODO: Make output() buffered to ensure
-			// we are not really calling sink for every byte of
-			// this escaped text
-			output(c);
+			ctml_buffered_ctml_output(ctx, &text[i], 1);
 		}
 	}
 }

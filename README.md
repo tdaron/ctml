@@ -81,7 +81,7 @@ This code will print this html on stdout:
 
 NOTE: The sink function is a `void *(sink) (char*, void* userData)` where ctml
 will send the generated HTML.
-CTML will send data in multiple times and not only once with the 
+CTML will send data in multiple batches and not only once with the
 full generated HTML. 
 
 The sink function also takes `void* userData` with user data
@@ -142,10 +142,15 @@ to pass it around.
 ## Configuration
 This library can be configured using some macros. 
 
-*CTML_PRETTY* will enable pretty print of the HTML. 
-*CTML_NOLIBC* will disable all libc dependent stuff (only 
+`CTML_PRETTY` will enable pretty print of the HTML.
+`CTML_NOLIBC` will disable all libc dependent stuff (only
 the ctml_rawf macro)
-*CTML_CUSTOM_ATTRIBUTES* as explained in [Custom Attributes](#custom-attributes).
+`CTML_CUSTOM_ATTRIBUTES` as explained in [Custom Attributes](#custom-attributes).
+
+To avoid calling the sink loads of times, ctml will bufferize the output.
+The size of this buffer can be parametrized using `CTML_SINK_BUFSIZE`.
+The default value is 1024 bytes. Setting it to `1` or `0` will disable
+buffering.
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
 repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES).
