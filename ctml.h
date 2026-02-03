@@ -469,24 +469,29 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
 }
 
 void ctml_escape_text(CTML_Context* ctx, char* text) {
+	// Not to be escaped count the number of unescaped chars
+	// that could be send in one call to ctml_buffered_ctml_output
+	int not_to_be_escaped = 0;
 	for (int i = 0; text[i] != '\0'; i++) {
-		if (text[i] == '<') {
-			ctml_output("&lt;");
-		}
-		else if (text[i] == '>') {
-			ctml_output("&gt;");
-		}
-		else if (text[i] == '&') {
-			ctml_output("&amp;");
-		}
-		else if (text[i] == '\'') {
-			ctml_output("&quot;");
-		}
-		else if (text[i] == '"') {
-			ctml_output("&#39;");
-		}
+
+		if (0) {}
+		#define ESCAPE(char, escaped_version) \
+		else if (text[i] == char) {  \
+		        /* Sending all the text that should not be escaped */ \
+			ctml_buffered_ctml_output(ctx, &text[i-not_to_be_escaped], not_to_be_escaped); \
+		        /* Sending escaped version of current char */ \
+			ctml_output(escaped_version); \
+			/* Resetting text that should not be escaped counter */ \
+			not_to_be_escaped = 0; \
+		} \
+
+		ESCAPE('<', "&lt;")
+		ESCAPE('>', "&gt;")
+		ESCAPE('&', "&amp;")
+		ESCAPE('\'', "&quot;")
+		ESCAPE('"', "&#39;") 
 		else {
-			ctml_buffered_ctml_output(ctx, &text[i], 1);
+			not_to_be_escaped++;
 		}
 	}
 }
