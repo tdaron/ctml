@@ -491,6 +491,7 @@ void ctml_escape_text(CTML_Context* ctx, char* text) {
 		ESCAPE('\'', "&quot;")
 		ESCAPE('"', "&#39;") 
 		else {
+			// This char should not be escaped
 			not_to_be_escaped++;
 		}
 	}
