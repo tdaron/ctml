@@ -40,8 +40,6 @@
     #define script(...)  h(script, __VA_ARGS__)
 #endif
 
-// --- Containers ---
-
 #ifndef CTML_NO_DIV
     #define div(...)     h(div, __VA_ARGS__)
 #endif
@@ -69,8 +67,6 @@
 #ifndef CTML_NO_NAV
     #define nav(...)     h(nav, __VA_ARGS__)
 #endif
-
-// --- Typography ---
 
 #ifndef CTML_NO_H1
     #define h1(...)      h(h1, __VA_ARGS__)
@@ -128,8 +124,6 @@
     #define blockquote(...) h(blockquote, __VA_ARGS__)
 #endif
 
-// --- Lists ---
-
 #ifndef CTML_NO_UL
     #define ul(...)      h(ul, __VA_ARGS__)
 #endif
@@ -141,8 +135,6 @@
 #ifndef CTML_NO_LI
     #define li(...)      h(li, __VA_ARGS__)
 #endif
-
-// --- Media ---
 
 #ifndef CTML_NO_IMG
     #define img(...)     hh(img, __VA_ARGS__)
@@ -159,8 +151,6 @@
 #ifndef CTML_NO_SOURCE
     #define source(...)  hh(source, __VA_ARGS__)
 #endif
-
-// --- Forms ---
 
 #ifndef CTML_NO_FORM
     #define form(...)    h(form, __VA_ARGS__)
@@ -190,8 +180,6 @@
     #define option(...)  h(option, __VA_ARGS__)
 #endif
 
-// --- Tables ---
-
 #ifndef CTML_NO_TABLE
     #define table(...)   h(table, __VA_ARGS__)
 #endif
@@ -215,8 +203,6 @@
 #ifndef CTML_NO_TD
     #define td(...)      h(td, __VA_ARGS__)
 #endif
-
-// --- Breaks ---
 
 #ifndef CTML_NO_BR
     #define br(...)      hh(br, __VA_ARGS__)
