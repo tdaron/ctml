@@ -124,7 +124,7 @@ only requirement is for you to pass the ctml context across components
 this way:
 
 ```c
-void some_button(CTML_Context* ctx) {
+void some_button(CTML_Context* CTML_CTX_NAME) {
     h(button, .class="my-btn") {ctml_raw("click me");}
 }
 
@@ -132,7 +132,7 @@ void my_ui() {
     ctml(.sink=...) {
         h(div) {
             // NOTE HERE THE CTX
-            some_button(ctx);
+            some_button(CTML_CTX_NAME);
         }
     }
 }
@@ -206,6 +206,10 @@ div(.id="truth") {
 #ifndef CTML_H
 #define CTML_H
 
+#ifndef CTML_CTX_NAME
+#define CTML_CTX_NAME ctx
+#endif
+
 // This is the X macro containing attributes.
 // Instead of adding attributes here, they can
 // also be provided using the CTML_CUSTOM_ATTRIBUTES
@@ -271,11 +275,11 @@ typedef struct {
 
 
 #ifdef CTML_PRETTY
-	void ctml_indent(CTML_Context* ctx, int indent);
+	void ctml_indent(CTML_Context* CTML_CTX_NAME, int indent);
 #endif
 
-void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag);
-void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
+void ctml_open_tag(CTML_Context* CTML_CTX_NAME, CTML_Tag* tag);
+void ctml_close_tag(CTML_Context* CTML_CTX_NAME, CTML_Tag* tag);
 
 // Those CONCAT macros are used to generate unique names for created tag
 // like this: __tag__32 with 32 the __LINE__ number where h() or hh() macros
@@ -301,8 +305,8 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 // 
 #define ctml_tag(n, ...)                                               \
 	CTML_Tag CONCAT(_tag_, __LINE__) = {.tag_name=#n, __VA_ARGS__};			\
-	ctml_open_tag(ctx, &CONCAT(_tag_, __LINE__));                                         \
-	for (int _once = 0; _once < 1; _once=1,ctml_close_tag(ctx, &CONCAT(_tag_, __LINE__))) \
+	ctml_open_tag(CTML_CTX_NAME, &CONCAT(_tag_, __LINE__));                                         \
+	for (int _once = 0; _once < 1; _once=1,ctml_close_tag(CTML_CTX_NAME, &CONCAT(_tag_, __LINE__))) \
 
 
 // Those macros are used by the user.
@@ -311,19 +315,19 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 #define hh(n, ...) ctml_tag(n, .self_close=1, __VA_ARGS__) {}
 
 // simple macro to create the context
-// TODO: Maybe find a way not to have this "hidden" ctx the user can use ?
+// TODO: Maybe find a way not to have this "hidden" CTML_CTX_NAME the user can use ?
 #define ctml(...) CTML_Context ctml_context = (CTML_Context) {__VA_ARGS__}; \
-		  CTML_Context* ctx = &ctml_context; \
-		  for (int _once = 0; _once < 1; _once=1,ctml_flush_buffer(ctx)) \
+		  CTML_Context* CTML_CTX_NAME = &ctml_context; \
+		  for (int _once = 0; _once < 1; _once=1,ctml_flush_buffer(CTML_CTX_NAME)) \
 
 
 // Definition of ctml_raw macro.
 #ifdef CTML_PRETTY
-	#define ctml_raw(t) ctml_indent(ctx, ctx->indent);ctml_output(t);ctml_output("\n");
-	#define ctml_text(t) ctml_indent(ctx, ctx->indent);ctml_escape_text(ctx, t);ctml_output("\n");
+	#define ctml_raw(t) ctml_indent(CTML_CTX_NAME, CTML_CTX_NAME->indent);ctml_output(t);ctml_output("\n");
+	#define ctml_text(t) ctml_indent(CTML_CTX_NAME, CTML_CTX_NAME->indent);ctml_escape_text(CTML_CTX_NAME, t);ctml_output("\n");
 #else
 	#define ctml_raw(t) ctml_output(t);
-	#define ctml_text(t) ctml_escape_text(ctx, t);
+	#define ctml_text(t) ctml_escape_text(CTML_CTX_NAME, t);
 #endif // CTML_PRETTY
 
 // Implementation of ctml_rawf that is basically
@@ -355,27 +359,27 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag);
 
 #ifdef CTML_IMPLEMENTATION
 
-#define ctml_output(c) ctml_buffered_ctml_output(ctx, c, -1);
+#define ctml_output(c) ctml_buffered_ctml_output(CTML_CTX_NAME, c, -1);
 
-void ctml_buffered_ctml_output(CTML_Context* ctx, char* data, int length) {
+void ctml_buffered_ctml_output(CTML_Context* CTML_CTX_NAME, char* data, int length) {
 	#if CTML_SINK_BUFSIZE == 0 || CTML_SINK_BUFSIZE == 1
-		ctx->sink(data, ctx->userData);
+		CTML_CTX_NAME->sink(data, CTML_CTX_NAME->userData);
 	#else
-		int available = CTML_SINK_BUFSIZE - ctx->bufferedDataLength - 1;
+		int available = CTML_SINK_BUFSIZE - CTML_CTX_NAME->bufferedDataLength - 1;
 		int i;
 		for (i = 0; i < available; i++) {
 			if (data[i] == '\0' || (i == length && length != -1) ) {
 				break;
 			}
-			(ctx->outputBuf+ctx->bufferedDataLength)[i] = data[i];
+			(CTML_CTX_NAME->outputBuf+CTML_CTX_NAME->bufferedDataLength)[i] = data[i];
 		}
-		ctx->bufferedDataLength += i;
+		CTML_CTX_NAME->bufferedDataLength += i;
 		// Check if the buffer is full
 		if (i == available) {
-			ctx->outputBuf[CTML_SINK_BUFSIZE-1] = '\0';
-			ctx->sink(ctx->outputBuf, ctx->userData);
+			CTML_CTX_NAME->outputBuf[CTML_SINK_BUFSIZE-1] = '\0';
+			CTML_CTX_NAME->sink(CTML_CTX_NAME->outputBuf, CTML_CTX_NAME->userData);
 
-			ctx->bufferedDataLength = 0;
+			CTML_CTX_NAME->bufferedDataLength = 0;
 		}
 		// if there is data left
 		if (data[i] != '\0') {
@@ -385,35 +389,35 @@ void ctml_buffered_ctml_output(CTML_Context* ctx, char* data, int length) {
 				new_length -= i;
 			}
 			if (new_length != 0) {
-				ctml_buffered_ctml_output(ctx, data+i, new_length);
+				ctml_buffered_ctml_output(CTML_CTX_NAME, data+i, new_length);
 			}
 		}
 	#endif
 }
 
-void ctml_flush_buffer(CTML_Context* ctx) {
-	if (ctx->bufferedDataLength != 0) {
-		ctx->outputBuf[ctx->bufferedDataLength] = '\0';
-		ctx->sink(ctx->outputBuf, ctx->userData);
-		ctx->bufferedDataLength = 0;
+void ctml_flush_buffer(CTML_Context* CTML_CTX_NAME) {
+	if (CTML_CTX_NAME->bufferedDataLength != 0) {
+		CTML_CTX_NAME->outputBuf[CTML_CTX_NAME->bufferedDataLength] = '\0';
+		CTML_CTX_NAME->sink(CTML_CTX_NAME->outputBuf, CTML_CTX_NAME->userData);
+		CTML_CTX_NAME->bufferedDataLength = 0;
 	}
 }
 
 
 
 #ifdef CTML_PRETTY
-	void ctml_indent(CTML_Context* ctx, int count) {
+	void ctml_indent(CTML_Context* CTML_CTX_NAME, int count) {
 		for (int i = 0; i < count; i++) {
 			ctml_output(" ");
 		}
 	}
 #endif // CTML_PRETTY
 
-void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
+void ctml_open_tag(CTML_Context* CTML_CTX_NAME, CTML_Tag* tag) {
 	#ifdef CTML_PRETTY
-		ctml_indent(ctx, ctx->indent);
+		ctml_indent(CTML_CTX_NAME, CTML_CTX_NAME->indent);
 		if (!tag->self_close) {
-			ctx->indent++;
+			CTML_CTX_NAME->indent++;
 		}
 	#endif
 	ctml_output("<");
@@ -450,13 +454,13 @@ void ctml_open_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#endif
 }
 
-void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
+void ctml_close_tag(CTML_Context* CTML_CTX_NAME, CTML_Tag* tag) {
 	if (tag->self_close) return;
 	
-	ctx->indent--;
+	CTML_CTX_NAME->indent--;
 
 	#ifdef CTML_PRETTY
-		ctml_indent(ctx, ctx->indent);
+		ctml_indent(CTML_CTX_NAME, CTML_CTX_NAME->indent);
 	#endif
 
 	ctml_output("</");
@@ -468,7 +472,7 @@ void ctml_close_tag(CTML_Context* ctx, CTML_Tag* tag) {
 	#endif
 }
 
-void ctml_escape_text(CTML_Context* ctx, char* text) {
+void ctml_escape_text(CTML_Context* CTML_CTX_NAME, char* text) {
 	// Not to be escaped count the number of unescaped chars
 	// that could be send in one call to ctml_buffered_ctml_output
 	int not_to_be_escaped = 0;
@@ -479,7 +483,7 @@ void ctml_escape_text(CTML_Context* ctx, char* text) {
 		#define ESCAPE(char, escaped_version) \
 		else if (text[i] == char) {  \
 		        /* Sending all the text that should not be escaped */ \
-			ctml_buffered_ctml_output(ctx, &text[i-not_to_be_escaped], not_to_be_escaped); \
+			ctml_buffered_ctml_output(CTML_CTX_NAME, &text[i-not_to_be_escaped], not_to_be_escaped); \
 		        /* Sending escaped version of current char */ \
 			ctml_output(escaped_version); \
 			/* Resetting text that should not be escaped counter */ \
@@ -497,7 +501,7 @@ void ctml_escape_text(CTML_Context* ctx, char* text) {
 		}
 	}
 	if (not_to_be_escaped > 0){
-		ctml_buffered_ctml_output(ctx, &text[i-not_to_be_escaped], not_to_be_escaped);
+		ctml_buffered_ctml_output(CTML_CTX_NAME, &text[i-not_to_be_escaped], not_to_be_escaped);
 	}
 }
 

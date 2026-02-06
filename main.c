@@ -19,20 +19,32 @@ void cbutton(CTML_Context* ctx) {
 }
 
 void ui() {
-	ctml(
-		.sink=sink
-	) {
-		ctml_raw("<!DOCTYPE html>");
-		html(.lang="en") {
-			img(.src="https://google.com/toto.png") 
-			div(.class="toto", .da="hey", .toto="hey") {
-				h1() {
-					ctml_raw("hello");
-					ctml_text("this is <strong>escaped</strong>");
-					ctml_raw("not <strong>escaped</strong>");
+	{
+		ctml(
+			.sink=sink
+		) {
+			ctml_raw("<!DOCTYPE html>");
+			html(.lang="en") {
+				img(.src="https://google.com/toto.png") 
+				div(.class="toto", .da="hey", .toto="hey") {
+					h1() {
+						ctml_raw("hello");
+						ctml_text("this is <strong>escaped</strong>");
+						ctml_raw("not <strong>escaped</strong>");
+					}
 				}
+				cbutton(ctx);
 			}
-			cbutton(ctx);
+		}
+	}
+	{
+
+		ctml(
+			.sink=sink
+		){
+			div() {
+				ctml_raw("another one");
+			}
 		}
 	}
 }

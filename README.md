@@ -113,9 +113,14 @@ in the [Components](#Components) section.
 
 ## Components
 
-Creating components boils down to just calling C functions. The
-only requirement is for you to pass the ctml context across components
-this way:
+Internally, ctml uses a context called `ctx` by default (this can be modified using
+[Configuration](#configuration) ) and it must be passed around whenever you want to
+call a function as a component inside your HTML generation (only if this function also wants to
+generate HTML in the same context as the function calling it).
+
+Creating components boils down to just calling C functions. As said
+before, the only requirement is for you to pass the ctml context across
+components this way:
 
 ```c
 void some_button(CTML_Context* ctx) {
@@ -148,6 +153,10 @@ To avoid calling the sink loads of times, ctml will bufferize the output.
 The size of this buffer can be parametrized using `CTML_SINK_BUFSIZE`.
 The default value is 1024 bytes. Setting it to `1` or `0` will disable
 buffering.
+
+Last but not least, as explained in [Components](#components) ctml internally
+uses a context called `ctx` by default. But you might want to use this name for
+something else, so the name used by ctml can be configured using `CTML_CTX_NAME`
 
 Those macros must be defined BEFORE including `ctml.h` and must be 
 repeated each time you inclde it (especially CTML_CUSTOM_ATTRIBUTES).
@@ -195,5 +204,16 @@ div(.id="truth") {
     }
 }
 ```
+
+## Limitations
+
+Because of the macro system and how the API is designed, it is not (yet?) possible to call
+ctml() function multiple times in a row otherwise the `ctx` (or any custom name set using
+`CTML_CTX_NAME`) variable would be defined multiple times.  I currently still does not have
+a proper solution to this; The easiest workaround would be to simply avoid calling ctml
+multiple times (as it normally should not happen that often), and simply divide it using function
+calls to avoid name collisions.
+
+One could also put curly braces around ctml calls to make each of them have their own scope.
 °°
 
