@@ -472,7 +472,8 @@ void ctml_escape_text(CTML_Context* ctx, char* text) {
 	// Not to be escaped count the number of unescaped chars
 	// that could be send in one call to ctml_buffered_ctml_output
 	int not_to_be_escaped = 0;
-	for (int i = 0; text[i] != '\0'; i++) {
+	int i;
+	for (i = 0; text[i] != '\0'; i++) {
 
 		if (0) {}
 		#define ESCAPE(char, escaped_version) \
@@ -494,6 +495,9 @@ void ctml_escape_text(CTML_Context* ctx, char* text) {
 			// This char should not be escaped
 			not_to_be_escaped++;
 		}
+	}
+	if (not_to_be_escaped > 0){
+		ctml_buffered_ctml_output(ctx, &text[i-not_to_be_escaped], not_to_be_escaped);
 	}
 }
 
