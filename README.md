@@ -6,10 +6,6 @@ for the C programming language.
 CTML is macro-based as the objective is to provide a nice to use 
 DSL inside of the C programming language.
 
-**Status**: This library is still in development. It works but is not as
-optimized as it could be. This warning will be removed when the library
-is considered usable.
-
 
 ## Features
 
