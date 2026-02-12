@@ -11,7 +11,7 @@ DSL inside of the C programming language.
 
 - Directly embedded inside C code
 - Really lightweight
-- Not any dependencies (not even libc)
+- Not any dependencies (not even libc) except for formatting functions that are opt-in
 - C functions as components
 
 As this library is a header-only library, at (only) one place
