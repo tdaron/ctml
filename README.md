@@ -80,7 +80,7 @@ will send the generated HTML.
 CTML might send data in multiple batches and not only once with the
 full generated HTML. 
 
-The sink function also takes `void* userData` with user data
+The sink function can also take `void* userData` with user data
 given to `ctml()` using `.userData = ...`
 
 ## Usage
