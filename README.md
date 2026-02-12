@@ -77,7 +77,7 @@ This code will print this html on stdout:
 
 NOTE: The sink function is a `void *(sink) (char*, void* userData)` where ctml
 will send the generated HTML.
-CTML will send data in multiple batches and not only once with the
+CTML might send data in multiple batches and not only once with the
 full generated HTML. 
 
 The sink function also takes `void* userData` with user data
