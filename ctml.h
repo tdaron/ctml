@@ -346,9 +346,6 @@ void ctml_close_tag(CTML_Context* CTML_CTX_NAME, CTML_Tag* tag);
 	#define ctml_rawf(...)                                     \
 		snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
 		ctml_raw(ctml_tmpbuf);
-	#define ctml_rawf(...)                                     \
-		snprintf(ctml_tmpbuf, CTML_BUF_SIZE, __VA_ARGS__);  \
-		ctml_raw(ctml_tmpbuf);
 
 
 #endif // CTML_NOLIBC
