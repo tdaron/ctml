@@ -490,8 +490,8 @@ void ctml_escape_text(CTML_Context* CTML_CTX_NAME, char* text) {
 		ESCAPE('<', "&lt;")
 		ESCAPE('>', "&gt;")
 		ESCAPE('&', "&amp;")
-		ESCAPE('\'', "&quot;")
-		ESCAPE('"', "&#39;") 
+		ESCAPE('"', "&quot;")
+		ESCAPE('\'', "&#39;") 
 		else {
 			// This char should not be escaped
 			not_to_be_escaped++;
